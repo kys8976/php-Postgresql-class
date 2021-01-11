@@ -1,14 +1,10 @@
 <?php
 /**
   PostGresql DB Class
-
   작성자 : 1qkakzk@naver.com
-
   작성 참고 문서 https://www.php.net/manual/en/function.pg-affected-rows.php
-
   DB설정사항
   1) charset : db생성시 셋팅명령어 => set server_encoding = 'UTF8'
-
 **/
 class DB {
     private $objDB = null;
@@ -51,7 +47,7 @@ class DB {
     public function __construct($DBHost=_DB_IP,$DBPort=_DB_PORT, $DBUser=_DB_USER, $DBPassword=_DB_PASSWORD, $DBName=_DB_NAME) {
         try {
             $this->objDB = pg_connect("host=".$DBHost." port=".$DBPort." dbname=".$DBName." user=".$DBUser." password=".$DBPassword."")or die('connection failed');
-            $this->objDB->set_charset( "utf8" );
+//            $this->objDB->set_charset( "utf8" );
         } catch (Exception $error) {
             $this->dbError($error);
         }
@@ -60,7 +56,7 @@ class DB {
     //소멸자
     public function __destruct() {
         if($this->objDB) {
-            pg_close($this->objDB)
+            pg_close($this->objDB);
         }
     }
 
@@ -90,11 +86,21 @@ class DB {
     public function getRows($query) {
         $objResult = $this->query($query);
         if($objResult) {
-            $arrResult['total'] = pg_num_rows($result);
+            $arrResult['total'] = pg_num_rows($objResult);
             $arrList = null;
+$datae=0;
             while($arrTmp =  pg_fetch_assoc($objResult)) {
+$datae+=1;
                 $arrList[] = $arrTmp;
+if($datae==$arrResult['total']){
+
+            $arrResult['list'] = $arrList;
+            return $arrResult;
+echo "<div align=left><pre>"; var_dump($arrResult); echo "</pre>"; die("<br>End</div>");
+}
             }
+
+
             $arrResult['list'] = $arrList;
             return $arrResult;
         }
@@ -104,7 +110,7 @@ class DB {
     public function getNumRows($query) {
         $objResult = $this->query($query);
         if($objResult) {
-            return pg_num_rows($result);
+            return pg_num_rows($objResult);
         }
     }
 
@@ -134,13 +140,13 @@ class DB {
 
 
     // table, set variables, where, limit
-    public function update($table, $arrParam=array(), $arrWhere=array(), $limit='') {
+    public function update($table, $arrParam=array(), $arrWhere=array(), $limit='',$return_query=0) {
         if(empty($arrParam)) {
             return false;
         }
         $query = "update ".$table." set ";
         foreach($arrParam as $field => $value) {
-            $arrSetData[] = $value == 'now()' ? "`$field`=now()" : "`$field`='$value'";
+            $arrSetData[] = $value == 'now()' ? "$field=now()" : "$field=$value";
         }
         $query .= implode(', ', $arrSetData);
 
@@ -158,7 +164,12 @@ class DB {
         $objResult = $this->query($query);
 
         if($objResult) {
+if($return_query==1){
+            return $query;
+}else{
             return true;
+
+}
         }
     }
 
@@ -204,16 +215,23 @@ class DB {
     /*
       // Connect to the database
       pg_connect("dbname=mark host=localhost");
-
       // Create a sample table
       pg_query("CREATE TABLE test (a INTEGER) WITH OIDS");
-
       // Insert some data into it
       $res = pg_query("INSERT INTO test VALUES (1)");
-
       $oid = pg_last_oid($res);
-
     */
+
+    public function escape($data) {
+         if(!is_array($data)) {
+             $data = $this->objDB->pg_escape_string($data);
+         }
+         else {
+//             $data = array_map(array($this, 'escape'), $data);
+//             $data = array_map(array($this, 'escape'), $data);
+         }
+         return $data;
+     } 
     public function getLastId($res) {
         return pg_last_oid($res);
     }
@@ -231,3 +249,4 @@ class DB {
         return pg_affected_rows($result);
     }
 }
+?>
