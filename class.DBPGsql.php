@@ -212,16 +212,7 @@ if($return_query==1){
          }
     }
 
-    /*
-      // Connect to the database
-      pg_connect("dbname=mark host=localhost");
-      // Create a sample table
-      pg_query("CREATE TABLE test (a INTEGER) WITH OIDS");
-      // Insert some data into it
-      $res = pg_query("INSERT INTO test VALUES (1)");
-      $oid = pg_last_oid($res);
-    */
-
+    //다행 데이터와 단행 데이터의 db사용을 위한 문자형태처리
     public function escape($data) {
          if(!is_array($data)) {
              $data = $this->objDB->pg_escape_string($data);
@@ -232,18 +223,13 @@ if($return_query==1){
          }
          return $data;
      } 
+  
+   //테이블의 마지막 행가져오기
     public function getLastId($res) {
         return pg_last_oid($res);
     }
 
-    /*
-    $sql="BEGIN;
-    INSERT ...
-    COMMIT;";
-    $result=pg_query($conn,$sql);
-    echo pg_affected_rows($result);
-    */
-
+    //영향받은 레코드수 반환
     public function getAffected($sql) {
         $result=pg_query($this->objDB,$sql);
         return pg_affected_rows($result);
